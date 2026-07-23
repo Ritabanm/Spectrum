@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spectrum - Client-Side Color Palette Extractor</title>
+  <meta name="description" content="Generate beautiful, cohesive color palettes directly from your images. 100% client-side, privacy-focused, with built-in contrast checking and custom color picking.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="dark-theme">
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-logo">
+        <div class="logo-icon-wrapper">
+          <i data-lucide="aperture" class="logo-icon"></i>
+        </div>
+        <div>
+          <h1>Spectrum</h1>
+          <p class="subtitle">Extract beautiful color palettes from your own images, locally.</p>
+        </div>
+      </div>
+      <div class="header-controls">
+        <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme">
+          <i data-lucide="sun" class="sun-icon"></i>
+          <i data-lucide="moon" class="moon-icon"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="app-main">
+      <!-- Left Panel: Image Dropzone & Preview -->
+      <section class="panel panel-image">
+        <!-- Image Dropzone (Visible when no image is loaded) -->
+        <div id="dropzone" class="dropzone-area">
+          <input type="file" id="file-input" accept="image/*" class="hidden-input">
+          <div class="dropzone-content">
+            <div class="upload-icon-wrapper">
+              <i data-lucide="image-plus" class="upload-icon"></i>
+            </div>
+            <h3>Drag & drop your image here</h3>
+            <p class="dropzone-or">or</p>
+            <button type="button" id="browse-btn" class="btn btn-primary">Browse Files</button>
+            <p class="dropzone-subtext">Supports PNG, JPG, JPEG, WEBP. Paste from clipboard (Ctrl+V) works too!</p>
+          </div>
+        </div>
+
+        <!-- Image Preview Container (Visible when image is loaded) -->
+        <div id="preview-container" class="preview-container hidden">
+          <div class="preview-wrapper">
+            <canvas id="source-canvas"></canvas>
+            <div id="eye-dropper-overlay" class="eye-dropper-overlay">
+              <div id="magnifier" class="magnifier hidden"></div>
+            </div>
+          </div>
+          <div class="preview-controls">
+            <button id="change-image-btn" class="btn btn-secondary">
+              <i data-lucide="refresh-cw"></i> Change Image
+            </button>
+            <button id="eye-dropper-btn" class="btn btn-secondary">
+              <i data-lucide="pipette"></i> Color Picker
+            </button>
+            <span class="instruction-text">Hover to preview colors. Click to pick.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel: Configurations & Palettes -->
+      <section class="panel panel-workspace">
+        <!-- Controls Card -->
+        <div class="card controls-card">
+          <div class="card-header">
+            <i data-lucide="sliders"></i>
+            <h2>Palette Settings</h2>
+          </div>
+          
+          <div class="controls-grid">
+            <!-- Color Count -->
+            <div class="control-group">
+              <label for="color-count">
+                <span>Number of Colors:</span>
+                <span id="color-count-value" class="badge">6</span>
+              </label>
+              <div class="slider-wrapper">
+                <input type="range" id="color-count" min="5" max="8" value="6" step="1">
+              </div>
+            </div>
+
+            <!-- Palette Style / Strategy -->
+            <div class="control-group">
+              <label for="extraction-strategy">Palette Mood:</label>
+              <select id="extraction-strategy" class="custom-select">
+                <option value="dominant">Dominant (Clustered)</option>
+                <option value="vibrant">Vibrant & Colorful</option>
+                <option value="muted">Soft & Muted</option>
+                <option value="pastel">Light & Pastel</option>
+                <option value="dark">Deep & Dark</option>
+              </select>
+            </div>
+
+            <!-- Sorting -->
+            <div class="control-group">
+              <label for="color-sorting">Sort Colors By:</label>
+              <select id="color-sorting" class="custom-select">
+                <option value="dominance">Dominance (Default)</option>
+                <option value="hue">Hue (Rainbow)</option>
+                <option value="saturation">Saturation (Intensity)</option>
+                <option value="luminance">Luminance (Brightness)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Palette Output Card -->
+        <div class="card palette-card">
+          <div class="card-header">
+            <i data-lucide="palette"></i>
+            <h2>Generated Palette</h2>
+            <div class="card-header-actions">
+              <button id="lock-all-btn" class="btn-icon" title="Toggle Lock All">
+                <i data-lucide="unlock"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Color Swatch Container -->
+          <div id="palette-grid" class="palette-grid">
+            <!-- Swatches will be generated dynamically by JS -->
+            <div class="empty-state">
+              <i data-lucide="image"></i>
+              <p>Upload an image to extract color swatches</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Export Card -->
+        <div class="card export-card hidden" id="export-card">
+          <div class="card-header">
+            <i data-lucide="download"></i>
+            <h2>Export Palette</h2>
+          </div>
+          <div class="export-tabs-header">
+            <button class="export-tab-btn active" data-format="css">CSS</button>
+            <button class="export-tab-btn" data-format="tailwind">Tailwind</button>
+            <button class="export-tab-btn" data-format="json">JSON</button>
+            <button class="export-tab-btn" data-format="svg">SVG</button>
+          </div>
+          <div class="export-content">
+            <div class="code-block-wrapper">
+              <pre><code id="export-code">// Code snippet will be generated here</code></pre>
+              <button id="copy-export-btn" class="btn-copy-code" title="Copy code">
+                <i data-lucide="copy"></i>
+              </button>
+            </div>
+            <div class="download-action-wrapper hidden" id="download-action-wrapper">
+              <button id="download-btn" class="btn btn-primary">
+                <i data-lucide="download-cloud"></i> Download SVG File
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
