@@ -27,3 +27,12 @@ Simply double-click the `index.html` file to open it in any modern browser, or s
 
 ## License
 MIT License. Feel free to use, modify, and distribute as needed.
+
+---
+ 
+
+*   ## 💖 Support the Project
+
+Spectrum is built and maintained as a completely free, open-source tool. If it saves you time, helps your business, or you just want to support the project, feel free to buy me a coffee!
+
+☕ **[Buy Me A Coffee](https://buymeacoffee.com/ritabanm)**
